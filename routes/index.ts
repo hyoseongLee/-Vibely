@@ -1,10 +1,9 @@
 import express from 'express';
+import { login, callback } from '../controllers/auth.controller';
+
 const router = express.Router();
 
-// 기본 테스트 라우트
-router.get('/', (req, res) => {
-  res.send('vibely');
-});
-
+router.get('/auth/login', login);
+router.get('/auth/callback', callback);
 
 export default router;
