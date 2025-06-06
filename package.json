@@ -2,6 +2,7 @@
   "name": "vibely",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,6 +18,9 @@
     "mysql": "^2.18.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/mysql": "^2.15.27",
     "@types/node": "^22.15.30",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
