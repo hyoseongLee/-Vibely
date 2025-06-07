@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import pool from '../database/mariadb';
 import { SPOTIFY_CONFIG } from '../config/index';
 
 export const getLoginUrl = () => {
@@ -57,4 +57,129 @@ export const getTokensFromCode = async (code: string) => {
     refresh_token,
     spotify_id: userRes.data.id,
   };
+};
+
+export const getUserAccessToken = (
+  spotifyId: string
+): Promise<string | null> => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      'SELECT accessToken FROM users WHERE spotifyId = ?',
+      [spotifyId],
+      (err, results: any) => {
+        if (err) return reject(err);
+        const accessToken = results[0]?.accessToken ?? null;
+        resolve(accessToken);
+      }
+    );
+  });
+};
+
+export const getAlbumInfo = async (spotifyId: string, albumId: string) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+
+  const response = await axios.get(
+    `https://api.spotify.com/v1/albums/${albumId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  const album = response.data;
+
+  return {
+    id: album.id,
+    name: album.name,
+    releaseDate: album.release_date,
+    imageUrl: album.images?.[0]?.url || null,
+    totalTracks: album.total_tracks,
+    artists: album.artists.map((artist: any) => artist.name),
+    tracks: album.tracks.items.map((track: any) => ({
+      id: track.id,
+      name: track.name,
+      trackNumber: track.track_number,
+      durationMs: track.duration_ms,
+      isPlayable: track.is_playable,
+      previewUrl: track.preview_url,
+      linkedFromId: track.linked_from?.id || null,
+    })),
+  };
+};
+
+export const getPlaylistInfo = async (
+  spotifyId: string,
+  playlistId: string
+) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+
+  const response = await axios.get(
+    `https://api.spotify.com/v1/playlists/${playlistId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  const playlist = response.data;
+
+  return {
+    name: playlist.name,
+    imageUrl: playlist.images?.[0]?.url || null,
+    public: playlist.public,
+    ownerName: playlist.owner?.display_name || null,
+    totalTracks: playlist.tracks?.total ?? 0,
+    tracks:
+      playlist.tracks?.items?.map((item: any) => {
+        const track = item.track;
+        return {
+          id: track.id,
+          name: track.name,
+          isPlayable: track.is_playable,
+          previewUrl: track.preview_url,
+          linkedFromId: track.linked_from?.id || null,
+          artistNames: track.artists?.map((artist: any) => artist.name),
+        };
+      }) || [],
+  };
+};
+
+export const getPlaylistTracks = async (
+  spotifyId: string,
+  playlistId: string
+) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found');
+
+  const response = await axios.get(
+    `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      params: {
+        limit: 3,
+      },
+    }
+  );
+
+  const items = response.data.items;
+
+  return items.map((item: any) => {
+    const track = item.track;
+
+    return {
+      id: track.id,
+      name: track.name,
+      isPlayable: track.is_playable,
+      previewUrl: track.preview_url,
+      linkedFromId: track.linked_from?.id || null,
+      artistNames: track.artists.map((artist: any) => artist.name),
+      albumImage: track.album.images?.[0]?.url || null,
+    };
+  });
 };
