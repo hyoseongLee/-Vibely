@@ -7,3 +7,5 @@ export const SPOTIFY_CONFIG = {
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET || '',
   redirectUri: process.env.SPOTIFY_REDIRECT_URI || '',
 };
+
+export const API_KEY = process.env.GEMINI_API_KEY;
