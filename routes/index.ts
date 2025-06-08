@@ -1,20 +1,27 @@
 import express from 'express';
 import { login, callback } from '../controllers/auth.controller';
 import { geminiChatHandler } from '../controllers/gemini.controller';
-import  {
-    getPlaybackStateController,
-    startOrResumePlaybackController,
-    pausePlaybackController,
-    skipToNextController,
-    skipToPreviousController,
-    seekToPositionController,
-    setPlaybackVolumeController,
-    addItemToQueueController,
-    getUserProfileController,
-    handleGetAlbumInfo,
-    handleGetPlaylistInfo,
-    handleGetPlaylistTracks
-  } from '../controllers/spotify.controller';
+import {
+  handleGetAlbumInfo,
+  handleGetPlaylistInfo,
+  handleGetPlaylistTracks,
+  followAlbum,
+  albumFollowRemove,
+  FollowPlaylist,
+  UnfollowPlaylist,
+  GetNewReleases,
+  GetFollowedAlbum,
+  GetFollowedPlaylist,
+  getPlaybackStateController,
+  startOrResumePlaybackController,
+  pausePlaybackController,
+  skipToNextController,
+  skipToPreviousController,
+  seekToPositionController,
+  setPlaybackVolumeController,
+  addItemToQueueController,
+  getUserProfileController,
+} from '../controllers/spotify.controller';
 
 const router = express.Router();
 
@@ -38,5 +45,15 @@ router.get(
   '/spotify/playlist-tracks/:spotifyId/:playlistId',
   handleGetPlaylistTracks
 );
+
+router.put('/spotify/album/follow/:spotifyId/:albumId', followAlbum);         
+router.delete('/spotify/album/follow/:spotifyId/:albumId', albumFollowRemove);
+
+router.put('/spotify/playlist/:playlistId/follow', FollowPlaylist);    
+router.delete('/spotify/playlist/:playlistId/follow', UnfollowPlaylist); 
+
+router.get('/spotify/new-releases', GetNewReleases);           
+router.get('/spotify/followed/albums', GetFollowedAlbum);      
+router.get('/spotify/followed/playlists', GetFollowedPlaylist); 
 
 export default router;
