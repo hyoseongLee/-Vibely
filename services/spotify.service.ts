@@ -185,6 +185,103 @@ export const getPlaylistTracks = async (
   });
 };
 
+export const getPlaybackState = async (spotifyId: string) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+  const response = await axios.get('https://api.spotify.com/v1/me/player', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return response.data;
+};
+
+export const startOrResumePlayback = async (spotifyId: string, uris?: string[], positionMs?: number) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+  await axios.put(
+    'https://api.spotify.com/v1/me/player/play',
+    { ...(uris ? { uris } : {}), ...(positionMs !== undefined ? { position_ms: positionMs } : {}) },
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+};
+
+export const pausePlayback = async (spotifyId: string) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+  await axios.put(
+    'https://api.spotify.com/v1/me/player/pause',
+    {},
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+};
+
+export const skipToNext = async (spotifyId: string) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+  await axios.post(
+    'https://api.spotify.com/v1/me/player/next',
+    {},
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+};
+
+export const skipToPrevious = async (spotifyId: string) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+  await axios.post(
+    'https://api.spotify.com/v1/me/player/previous',
+    {},
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+};
+
+export const seekToPosition = async (spotifyId: string, positionMs: number) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+  await axios.put(
+    `https://api.spotify.com/v1/me/player/seek?position_ms=${positionMs}`,
+    {},
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+};
+
+export const setPlaybackVolume = async (
+  spotifyId: string,
+  volumePercent: number // 0~100 사이 값
+) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+
+  await axios.put(
+    `https://api.spotify.com/v1/me/player/volume?volume_percent=${volumePercent}`,
+    {},
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+};
+
+export const addItemToQueue = async (
+  spotifyId: string,
+  uri: string // 예: 'spotify:track:4iV5W9uYEdYUVa79Axb7Rh'
+) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+
+  await axios.post(
+    `https://api.spotify.com/v1/me/player/queue?uri=${encodeURIComponent(uri)}`,
+    {},
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+};
+
+export const getUserProfile = async (spotifyId: string) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error('Access token not found.');
+
+  const response = await axios.get(
+    'https://api.spotify.com/v1/me',
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  return response.data;
+};
 export const searchSpotifyPlaylist = async (
   query: string,
   spotifyId: string
