@@ -59,21 +59,22 @@ export const getTokensFromCode = async (code: string) => {
   };
 };
 
-export const getUserAccessToken = (
+export const getUserAccessToken = async (
   spotifyId: string
 ): Promise<string | null> => {
-  return new Promise((resolve, reject) => {
-    pool.query(
+  try {
+    const [rows]: any = await pool.query(
       'SELECT accessToken FROM users WHERE spotifyId = ?',
-      [spotifyId],
-      (err, results: any) => {
-        if (err) return reject(err);
-        const accessToken = results[0]?.accessToken ?? null;
-        resolve(accessToken);
-      }
+      [spotifyId]
     );
-  });
+    const accessToken = rows[0]?.accessToken ?? null;
+    return accessToken;
+  } catch (err) {
+    console.error('쿼리 실행 오류:', err);
+    return null;
+  }
 };
+
 
 export const getAlbumInfo = async (spotifyId: string, albumId: string) => {
   const accessToken = await getUserAccessToken(spotifyId);
@@ -211,24 +212,24 @@ export const searchSpotifyPlaylist = async (
 };
 
 // 앨범 팔로우
-export const followAlbumService = async (albumId: string, accessToken: string) => {
-  const url = `https://api.spotify.com/v1/me/albums`;
-
+export const followAlbumService = async (albumId: string, spotifyId: string) => {
+  const url = `https://api.spotify.com/v1/me/albums?ids=${albumId}`;
+  const accessToken = await getUserAccessToken(spotifyId);
   await axios.put(
-      url,
-      { ids: [albumId] },
-      {
+    url,
+    null, // Body는 비움
+    {
       headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
-      }
+    }
   );
 };
 
 // 앨범 팔로우 취소
-export const removeFollowAlbumService = async (ids: string) => {
-      const accessToken = process.env.SPOTIFY_ACCESS_TOKEN;
+export const removeFollowAlbumService = async (ids: string, spotifyId: string) => {
+      const accessToken = await getUserAccessToken(spotifyId);
 
       const url = `https://api.spotify.com/v1/me/albums`;
   
@@ -244,119 +245,132 @@ export const removeFollowAlbumService = async (ids: string) => {
   };
 
 // 플레이리스트 팔로우
-export const followPlaylistService = async (accessToken: string, playlistId: string) => {
+export const followPlaylistService = async (playlistId: string, spotifyId: string) => {
   try {
-      const response = await axios.put(
-          `https://api.spotify.com/v1/playlists/${playlistId}/followers`,
-          {}, // body는 비어 있음
-          {
-          headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json"
-          }
-          }
-      );
-      return response.status === 200 || response.status === 204;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          console.error("Error following playlist:", error.response?.data || error.message);
-        } else if (error instanceof Error) {
-          console.error("Error following playlist:", error.message);
-        } else {
-          console.error("알 수 없는 에러:", error);
-        }
-      throw error;
+    const accessToken = await getUserAccessToken(spotifyId);
+    if (!accessToken) throw new Error("Access token이 없습니다");
+
+    const response = await axios.put(
+      `https://api.spotify.com/v1/playlists/${playlistId}/followers`,
+      {}, // body는 비어 있음
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.status === 200 || response.status === 204;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error following playlist:", error.response?.data || error.message);
+    } else {
+      console.error("Error following playlist:", error);
+    }
+    throw error;
   }
 };
 
 // 플레이리스트 팔로우 취소
-export const unfollowPlaylistService = async (accessToken: string, playlistId: string) => {
-      try {
-      const response = await axios.delete(
-          `https://api.spotify.com/v1/playlists/${playlistId}/followers`,
-          {
-          headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json"
-          }
-          }
-      );
-      return response.status === 200 || response.status === 204;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          console.error("Error following playlist:", error.response?.data || error.message);
-        } else if (error instanceof Error) {
-          console.error("Error following playlist:", error.message);
-        } else {
-          console.error("알 수 없는 에러:", error);
-        }
-      throw error;
+export const unfollowPlaylistService = async (playlistId: string, spotifyId: string) => {
+  try {
+    const accessToken = await getUserAccessToken(spotifyId);
+    if (!accessToken) throw new Error("Access token이 없습니다");
+
+    const response = await axios.delete(
+      `https://api.spotify.com/v1/playlists/${playlistId}/followers`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
       }
+    );
+
+    return response.status === 200 || response.status === 204;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error unfollowing playlist:", error.response?.data || error.message);
+    } else {
+      console.error("Error unfollowing playlist:", error);
+    }
+    throw error;
+  }
 };
 
 // 최신 발매 앨범 가져오기
-export const getNewReleasesService = async (accessToken: string) => {
-const url = `https://api.spotify.com/v1/browse/new-releases`;
+export const getNewReleasesService = async (spotifyId: string) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error("Access token이 없습니다");
 
-const response = await axios.get(url, {
-  headers: {
-  Authorization: `Bearer ${accessToken}`,
-  },
-  params: {
-  limit: 3,
-  offset: 0,
-  },
-});
+  const url = `https://api.spotify.com/v1/browse/new-releases`;
 
-const albums = response.data.albums.items.map((album: any) => ({
-  id: album.id,
-  image: album.images[0]?.url,
-}));
+  const response = await axios.get(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    params: {
+      limit: 3,
+      offset: 0,
+    },
+  });
 
-return albums;
+  const albums = response.data.albums.items.map((album: any) => ({
+    id: album.id,
+    image: album.images[0]?.url,
+  }));
+
+  return albums;
 };
 
 // 팔로우한 앨범 가져오기
-export const getFollowedAlbumService = async (accessToken: string) => {
-const url = `https://api.spotify.com/v1/me/albums`;
+export const getFollowedAlbumService = async (spotifyId: string) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error("Access token이 없습니다");
 
-const response = await axios.get(url, {
-  headers: {
-  Authorization: `Bearer ${accessToken}`,
-  },
-  params: {
-  limit: 3,
-  offset: 0,
-  market: "KR", // 또는 "US"
-  },
-});
+  const url = `https://api.spotify.com/v1/me/albums`;
 
-const albums = response.data.items.map((item: any) => ({
-  id: item.album.id,
-  image: item.album.images[0]?.url,
-}));
+  const response = await axios.get(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    params: {
+      limit: 3,
+      offset: 0,
+      market: "KR",
+    },
+  });
 
-return albums;
+  const albums = response.data.items.map((item: any) => ({
+    id: item.album.id,
+    image: item.album.images[0]?.url,
+  }));
+
+  return albums;
 };
 
 // 팔로우한 플레이리스트 가져오기
-export const getFollowedPlayListService = async (accessToken: string) => {
+export const getFollowedPlayListService = async (spotifyId: string) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  if (!accessToken) throw new Error("Access token이 없습니다");
+
   const url = `https://api.spotify.com/v1/me/playlists`;
 
   const response = await axios.get(url, {
-      headers: {
+    headers: {
       Authorization: `Bearer ${accessToken}`,
-      },
-      params: {
+    },
+    params: {
       limit: 3,
       offset: 0,
-      },
+    },
   });
 
   const playlists = response.data.items.map((playlist: any) => ({
-      id: playlist.id,
-      image: playlist.images[0]?.url,
+    id: playlist.id,
+    image: playlist.images[0]?.url,
   }));
 
   return playlists;
-  };
+};

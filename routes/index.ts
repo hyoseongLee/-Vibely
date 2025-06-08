@@ -28,8 +28,8 @@ router.get(
   handleGetPlaylistTracks
 );
 
-router.post('/spotify/album/follow', followAlbum);         
-router.delete('/spotify/album/follow', albumFollowRemove);    
+router.put('/spotify/album/follow/:spotifyId/:albumId', followAlbum);         
+router.delete('/spotify/album/follow/:spotifyId/:albumId', albumFollowRemove);
 
 router.put('/spotify/playlist/:playlistId/follow', FollowPlaylist);    
 router.delete('/spotify/playlist/:playlistId/follow', UnfollowPlaylist); 

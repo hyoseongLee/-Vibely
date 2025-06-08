@@ -1,4 +1,4 @@
-import mysql from 'mysql';
+import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -9,15 +9,18 @@ const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
+  waitForConnections: true,
+  queueLimit: 0,
 });
 
-pool.getConnection((err, connection: mysql.PoolConnection | undefined) => {
-  if (err) {
-    console.error('MariaDB 연결 오류:', err);
-  } else if (connection) {
+(async () => {
+  try {
+    const connection = await pool.getConnection();
     console.log('MariaDB 연결 성공');
-    connection.release();
+    connection.release(); // 꼭 연결 해제해 주세요
+  } catch (err) {
+    console.error('MariaDB 연결 오류:', err);
   }
-});
+})();
 
 export default pool;
