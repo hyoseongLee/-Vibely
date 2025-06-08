@@ -184,8 +184,6 @@ export const getPlaylistTracks = async (
   });
 };
 
-
-
 export const getPlaybackState = async (spotifyId: string) => {
   const accessToken = await getUserAccessToken(spotifyId);
   if (!accessToken) throw new Error('Access token not found.');
@@ -282,4 +280,29 @@ export const getUserProfile = async (spotifyId: string) => {
     { headers: { Authorization: `Bearer ${accessToken}` } }
   );
   return response.data;
+};
+export const searchSpotifyPlaylist = async (
+  query: string,
+  spotifyId: string
+) => {
+  const accessToken = await getUserAccessToken(spotifyId);
+  const response = await axios.get('https://api.spotify.com/v1/search', {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    params: {
+      q: query,
+      type: 'playlist',
+      limit: 1,
+    },
+  });
+
+  const playlist = response.data.playlists.items[0];
+  return {
+    id: playlist.id,
+    name: playlist.name,
+    imageUrl: playlist.images?.[0]?.url || null,
+    ownerId: playlist.owner?.id || null,
+    ownerName: playlist.owner?.display_name || null,
+  };
 };

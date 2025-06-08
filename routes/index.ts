@@ -10,7 +10,10 @@ import  {
     seekToPositionController,
     setPlaybackVolumeController,
     addItemToQueueController,
-    getUserProfileController
+    getUserProfileController,
+    handleGetAlbumInfo,
+    handleGetPlaylistInfo,
+    handleGetPlaylistTracks
   } from '../controllers/spotify.controller';
 
 const router = express.Router();
@@ -29,5 +32,11 @@ router.put('/spotify/:spotifyId/player/volume',setPlaybackVolumeController);
 router.post('/spotify/:spotifyId/player/queue', addItemToQueueController);
 router.get('/spotify/:spotifyId/profile', getUserProfileController);
 
+router.get('/spotify/album/:spotifyId/:albumId', handleGetAlbumInfo);
+router.get('/spotify/playlist/:spotifyId/:playlistId', handleGetPlaylistInfo);
+router.get(
+  '/spotify/playlist-tracks/:spotifyId/:playlistId',
+  handleGetPlaylistTracks
+);
 
 export default router;
