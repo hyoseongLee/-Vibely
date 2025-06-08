@@ -1,11 +1,11 @@
-
 ### 🎵 Vibely Backend
 Vibely는 Spotify 연동 및 다양한 음악 기능을 제공하는 백엔드 서버입니다.
 
 ----
 
-###📁 프로젝트 구조
-server.ts                # 서버 실행
+### 📁 프로젝트 구조
+```
+server.ts                # 서버 실행\n
 app.ts                   # Express 앱 설정
 routes/
   └── index.ts 
@@ -24,7 +24,7 @@ database/                     # DB 연결
   └── mariadb.ts  
 .env           
 package.json
-
+```
 ----
 
 ### 🗄️ 데이터베이스(users 테이블) 구조
@@ -70,7 +70,7 @@ MariaDB의 users 테이블 스키마:
 
 - express
 
-= axios
+- axios
 
 - mysql
 
