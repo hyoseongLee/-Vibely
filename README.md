@@ -1,5 +1,5 @@
 ### 🎵 Vibely
-Vibely는 Spotify 연동 및 다양한 음악 기능을 제공하는 서버입니다.
+Vibely는 Spotify 연동 및 AI를 활용한 음악 기능을 제공하는 서버입니다.
 
 ----
 
@@ -90,8 +90,8 @@ MariaDB 및 필요한 DB 테이블 생성
 ### 👥 팀원 역할
 영채: 서버, DB
 
-은미: 인증, 모델,Spotify
+은미: 인증, 모델, Spotify, DB
 
-효성: Gemini, Spotify
+효성: Gemini, Spotify, DB
 
-혜민: Spotify,
+혜민: 인증, Spotify, DB, 
