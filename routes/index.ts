@@ -49,11 +49,11 @@ router.get(
 router.put('/spotify/album/follow/:spotifyId/:albumId', followAlbum);         
 router.delete('/spotify/album/follow/:spotifyId/:albumId', albumFollowRemove);
 
-router.put('/spotify/playlist/:playlistId/follow', FollowPlaylist);    
-router.delete('/spotify/playlist/:playlistId/follow', UnfollowPlaylist); 
+router.put('/spotify/playlist/:spotifyId/:playlistId/follow', FollowPlaylist);    
+router.delete('/spotify/playlist/:spotifyId/:playlistId/follow', UnfollowPlaylist); 
 
-router.get('/spotify/new-releases', GetNewReleases);           
-router.get('/spotify/followed/albums', GetFollowedAlbum);      
-router.get('/spotify/followed/playlists', GetFollowedPlaylist); 
+router.get('/spotify/:spotifyId/new-releases', GetNewReleases);           
+router.get('/spotify/:spotifyId/followed/albums', GetFollowedAlbum);      
+router.get('/spotify/:spotifyId/followed/playlists', GetFollowedPlaylist); 
 
 export default router;
