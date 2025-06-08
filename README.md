@@ -1,5 +1,5 @@
-### 🎵 Vibely Backend
-Vibely는 Spotify 연동 및 다양한 음악 기능을 제공하는 백엔드 서버입니다.
+### 🎵 Vibely
+Vibely는 Spotify 연동 및 다양한 음악 기능을 제공하는 서버입니다.
 
 ----
 
