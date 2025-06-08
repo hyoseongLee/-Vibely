@@ -209,3 +209,154 @@ export const searchSpotifyPlaylist = async (
     ownerName: playlist.owner?.display_name || null,
   };
 };
+
+// 앨범 팔로우
+export const followAlbumService = async (albumId: string, accessToken: string) => {
+  const url = `https://api.spotify.com/v1/me/albums`;
+
+  await axios.put(
+      url,
+      { ids: [albumId] },
+      {
+      headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+      },
+      }
+  );
+};
+
+// 앨범 팔로우 취소
+export const removeFollowAlbumService = async (ids: string) => {
+      const accessToken = process.env.SPOTIFY_ACCESS_TOKEN;
+
+      const url = `https://api.spotify.com/v1/me/albums`;
+  
+      await axios.delete(
+          url, 
+          { headers: {
+          Authorization: `Bearer ${accessToken}`,
+      },
+      params: {
+          ids,
+      },
+      });
+  };
+
+// 플레이리스트 팔로우
+export const followPlaylistService = async (accessToken: string, playlistId: string) => {
+  try {
+      const response = await axios.put(
+          `https://api.spotify.com/v1/playlists/${playlistId}/followers`,
+          {}, // body는 비어 있음
+          {
+          headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json"
+          }
+          }
+      );
+      return response.status === 200 || response.status === 204;
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.error("Error following playlist:", error.response?.data || error.message);
+        } else if (error instanceof Error) {
+          console.error("Error following playlist:", error.message);
+        } else {
+          console.error("알 수 없는 에러:", error);
+        }
+      throw error;
+  }
+};
+
+// 플레이리스트 팔로우 취소
+export const unfollowPlaylistService = async (accessToken: string, playlistId: string) => {
+      try {
+      const response = await axios.delete(
+          `https://api.spotify.com/v1/playlists/${playlistId}/followers`,
+          {
+          headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json"
+          }
+          }
+      );
+      return response.status === 200 || response.status === 204;
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.error("Error following playlist:", error.response?.data || error.message);
+        } else if (error instanceof Error) {
+          console.error("Error following playlist:", error.message);
+        } else {
+          console.error("알 수 없는 에러:", error);
+        }
+      throw error;
+      }
+};
+
+// 최신 발매 앨범 가져오기
+export const getNewReleasesService = async (accessToken: string) => {
+const url = `https://api.spotify.com/v1/browse/new-releases`;
+
+const response = await axios.get(url, {
+  headers: {
+  Authorization: `Bearer ${accessToken}`,
+  },
+  params: {
+  limit: 3,
+  offset: 0,
+  },
+});
+
+const albums = response.data.albums.items.map((album: any) => ({
+  id: album.id,
+  image: album.images[0]?.url,
+}));
+
+return albums;
+};
+
+// 팔로우한 앨범 가져오기
+export const getFollowedAlbumService = async (accessToken: string) => {
+const url = `https://api.spotify.com/v1/me/albums`;
+
+const response = await axios.get(url, {
+  headers: {
+  Authorization: `Bearer ${accessToken}`,
+  },
+  params: {
+  limit: 3,
+  offset: 0,
+  market: "KR", // 또는 "US"
+  },
+});
+
+const albums = response.data.items.map((item: any) => ({
+  id: item.album.id,
+  image: item.album.images[0]?.url,
+}));
+
+return albums;
+};
+
+// 팔로우한 플레이리스트 가져오기
+export const getFollowedPlayListService = async (accessToken: string) => {
+  const url = `https://api.spotify.com/v1/me/playlists`;
+
+  const response = await axios.get(url, {
+      headers: {
+      Authorization: `Bearer ${accessToken}`,
+      },
+      params: {
+      limit: 3,
+      offset: 0,
+      },
+  });
+
+  const playlists = response.data.items.map((playlist: any) => ({
+      id: playlist.id,
+      image: playlist.images[0]?.url,
+  }));
+
+  return playlists;
+  };

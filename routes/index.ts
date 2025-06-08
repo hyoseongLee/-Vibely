@@ -5,6 +5,13 @@ import {
   handleGetAlbumInfo,
   handleGetPlaylistInfo,
   handleGetPlaylistTracks,
+  followAlbum,
+  albumFollowRemove,
+  FollowPlaylist,
+  UnfollowPlaylist,
+  GetNewReleases,
+  GetFollowedAlbum,
+  GetFollowedPlaylist,
 } from '../controllers/spotify.controller';
 
 const router = express.Router();
@@ -20,5 +27,15 @@ router.get(
   '/spotify/playlist-tracks/:spotifyId/:playlistId',
   handleGetPlaylistTracks
 );
+
+router.post('/spotify/album/follow', followAlbum);         
+router.delete('/spotify/album/follow', albumFollowRemove);    
+
+router.put('/spotify/playlist/:playlistId/follow', FollowPlaylist);    
+router.delete('/spotify/playlist/:playlistId/follow', UnfollowPlaylist); 
+
+router.get('/spotify/new-releases', GetNewReleases);           
+router.get('/spotify/followed/albums', GetFollowedAlbum);      
+router.get('/spotify/followed/playlists', GetFollowedPlaylist); 
 
 export default router;
