@@ -22,7 +22,11 @@ export const callback = async (req: Request, res: Response) => {
       refreshToken: refresh_token,
     });
 
-    res.redirect(`${process.env.FRONTEND_URL}?spotifyId=${spotify_id}`);
+    res.json({
+      accessToken: access_token,
+      refreshToken: refresh_token,
+      spotifyId: spotify_id,
+    });
   } catch (error) {
     const err = error as any;
     console.log('Spotify 토큰 수신 실패:', err.response?.data || err.message);
