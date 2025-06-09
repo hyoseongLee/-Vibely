@@ -1,5 +1,4 @@
 import axios from 'axios';
-import pool from '../database/mariadb';
 import { SPOTIFY_CONFIG } from '../config/index';
 
 export const getLoginUrl = () => {
@@ -59,27 +58,7 @@ export const getTokensFromCode = async (code: string) => {
   };
 };
 
-export const getUserAccessToken = async (
-  spotifyId: string
-): Promise<string | null> => {
-  try {
-    const [rows]: any = await pool.query(
-      'SELECT accessToken FROM users WHERE spotifyId = ?',
-      [spotifyId]
-    );
-    const accessToken = rows[0]?.accessToken ?? null;
-    return accessToken;
-  } catch (err) {
-    console.error('쿼리 실행 오류:', err);
-    return null;
-  }
-};
-
-
-export const getAlbumInfo = async (spotifyId: string, albumId: string) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
-
+export const getAlbumInfo = async (accessToken: string, albumId: string) => {
   const response = await axios.get(
     `https://api.spotify.com/v1/albums/${albumId}`,
     {
@@ -111,12 +90,9 @@ export const getAlbumInfo = async (spotifyId: string, albumId: string) => {
 };
 
 export const getPlaylistInfo = async (
-  spotifyId: string,
+  accessToken: string,
   playlistId: string
 ) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
-
   const response = await axios.get(
     `https://api.spotify.com/v1/playlists/${playlistId}`,
     {
@@ -150,12 +126,9 @@ export const getPlaylistInfo = async (
 };
 
 export const getPlaylistTracks = async (
-  spotifyId: string,
+  accessToken: string,
   playlistId: string
 ) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found');
-
   const response = await axios.get(
     `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
     {
@@ -185,28 +158,29 @@ export const getPlaylistTracks = async (
   });
 };
 
-export const getPlaybackState = async (spotifyId: string) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
+export const getPlaybackState = async (accessToken: string) => {
   const response = await axios.get('https://api.spotify.com/v1/me/player', {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   return response.data;
 };
 
-export const startOrResumePlayback = async (spotifyId: string, uris?: string[], positionMs?: number) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
+export const startOrResumePlayback = async (
+  accessToken: string,
+  uris?: string[],
+  positionMs?: number
+) => {
   await axios.put(
     'https://api.spotify.com/v1/me/player/play',
-    { ...(uris ? { uris } : {}), ...(positionMs !== undefined ? { position_ms: positionMs } : {}) },
+    {
+      ...(uris ? { uris } : {}),
+      ...(positionMs !== undefined ? { position_ms: positionMs } : {}),
+    },
     { headers: { Authorization: `Bearer ${accessToken}` } }
   );
 };
 
-export const pausePlayback = async (spotifyId: string) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
+export const pausePlayback = async (accessToken: string) => {
   await axios.put(
     'https://api.spotify.com/v1/me/player/pause',
     {},
@@ -214,9 +188,7 @@ export const pausePlayback = async (spotifyId: string) => {
   );
 };
 
-export const skipToNext = async (spotifyId: string) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
+export const skipToNext = async (accessToken: string) => {
   await axios.post(
     'https://api.spotify.com/v1/me/player/next',
     {},
@@ -224,9 +196,7 @@ export const skipToNext = async (spotifyId: string) => {
   );
 };
 
-export const skipToPrevious = async (spotifyId: string) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
+export const skipToPrevious = async (accessToken: string) => {
   await axios.post(
     'https://api.spotify.com/v1/me/player/previous',
     {},
@@ -234,9 +204,10 @@ export const skipToPrevious = async (spotifyId: string) => {
   );
 };
 
-export const seekToPosition = async (spotifyId: string, positionMs: number) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
+export const seekToPosition = async (
+  accessToken: string,
+  positionMs: number
+) => {
   await axios.put(
     `https://api.spotify.com/v1/me/player/seek?position_ms=${positionMs}`,
     {},
@@ -245,12 +216,9 @@ export const seekToPosition = async (spotifyId: string, positionMs: number) => {
 };
 
 export const setPlaybackVolume = async (
-  spotifyId: string,
+  accessToken: string,
   volumePercent: number // 0~100 사이 값
 ) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
-
   await axios.put(
     `https://api.spotify.com/v1/me/player/volume?volume_percent=${volumePercent}`,
     {},
@@ -259,12 +227,9 @@ export const setPlaybackVolume = async (
 };
 
 export const addItemToQueue = async (
-  spotifyId: string,
+  accessToken: string,
   uri: string // 예: 'spotify:track:4iV5W9uYEdYUVa79Axb7Rh'
 ) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
-
   await axios.post(
     `https://api.spotify.com/v1/me/player/queue?uri=${encodeURIComponent(uri)}`,
     {},
@@ -272,21 +237,17 @@ export const addItemToQueue = async (
   );
 };
 
-export const getUserProfile = async (spotifyId: string) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error('Access token not found.');
-
-  const response = await axios.get(
-    'https://api.spotify.com/v1/me',
-    { headers: { Authorization: `Bearer ${accessToken}` } }
-  );
+export const getUserProfile = async (accessToken: string) => {
+  const response = await axios.get('https://api.spotify.com/v1/me', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
   return response.data;
 };
+
 export const searchSpotifyPlaylist = async (
   query: string,
-  spotifyId: string
+  accessToken: string
 ) => {
-  const accessToken = await getUserAccessToken(spotifyId);
   const response = await axios.get('https://api.spotify.com/v1/search', {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -294,11 +255,18 @@ export const searchSpotifyPlaylist = async (
     params: {
       q: query,
       type: 'playlist',
-      limit: 1,
+      limit: 10,
     },
   });
+  const items = response.data.playlists?.items?.filter(Boolean) || [];
 
-  const playlist = response.data.playlists.items[0];
+  if (items.length === 0) {
+    throw new Error('해당 키워드로 유효한 플레이리스트를 찾을 수 없습니다.');
+  }
+
+  const randomIndex = Math.floor(Math.random() * items.length);
+  const playlist = items[randomIndex];
+
   return {
     id: playlist.id,
     name: playlist.name,
@@ -309,51 +277,49 @@ export const searchSpotifyPlaylist = async (
 };
 
 // 앨범 팔로우
-export const followAlbumService = async (albumId: string, spotifyId: string) => {
+export const followAlbumService = async (
+  albumId: string,
+  accessToken: string
+) => {
   const url = `https://api.spotify.com/v1/me/albums?ids=${albumId}`;
-  const accessToken = await getUserAccessToken(spotifyId);
-  await axios.put(
-    url,
-    null, // Body는 비움
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  await axios.put(url, null, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
 };
 
 // 앨범 팔로우 취소
-export const removeFollowAlbumService = async (ids: string, spotifyId: string) => {
-      const accessToken = await getUserAccessToken(spotifyId);
+export const removeFollowAlbumService = async (
+  ids: string,
+  accessToken: string
+) => {
+  const url = `https://api.spotify.com/v1/me/albums`;
 
-      const url = `https://api.spotify.com/v1/me/albums`;
-  
-      await axios.delete(
-          url, 
-          { headers: {
-          Authorization: `Bearer ${accessToken}`,
-      },
-      params: {
-          ids,
-      },
-      });
-  };
+  await axios.delete(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    params: {
+      ids,
+    },
+  });
+};
 
 // 플레이리스트 팔로우
-export const followPlaylistService = async (playlistId: string, spotifyId: string) => {
+export const followPlaylistService = async (
+  playlistId: string,
+  accessToken: string
+) => {
   try {
-    const accessToken = await getUserAccessToken(spotifyId);
-    if (!accessToken) throw new Error("Access token이 없습니다");
-
     const response = await axios.put(
       `https://api.spotify.com/v1/playlists/${playlistId}/followers`,
       {}, // body는 비어 있음
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
@@ -361,26 +327,29 @@ export const followPlaylistService = async (playlistId: string, spotifyId: strin
     return response.status === 200 || response.status === 204;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("Error following playlist:", error.response?.data || error.message);
+      console.error(
+        'Error following playlist:',
+        error.response?.data || error.message
+      );
     } else {
-      console.error("Error following playlist:", error);
+      console.error('Error following playlist:', error);
     }
     throw error;
   }
 };
 
 // 플레이리스트 팔로우 취소
-export const unfollowPlaylistService = async (playlistId: string, spotifyId: string) => {
+export const unfollowPlaylistService = async (
+  playlistId: string,
+  accessToken: string
+) => {
   try {
-    const accessToken = await getUserAccessToken(spotifyId);
-    if (!accessToken) throw new Error("Access token이 없습니다");
-
     const response = await axios.delete(
       `https://api.spotify.com/v1/playlists/${playlistId}/followers`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
@@ -388,19 +357,19 @@ export const unfollowPlaylistService = async (playlistId: string, spotifyId: str
     return response.status === 200 || response.status === 204;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("Error unfollowing playlist:", error.response?.data || error.message);
+      console.error(
+        'Error unfollowing playlist:',
+        error.response?.data || error.message
+      );
     } else {
-      console.error("Error unfollowing playlist:", error);
+      console.error('Error unfollowing playlist:', error);
     }
     throw error;
   }
 };
 
 // 최신 발매 앨범 가져오기
-export const getNewReleasesService = async (spotifyId: string) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error("Access token이 없습니다");
-
+export const getNewReleasesService = async (accessToken: string) => {
   const url = `https://api.spotify.com/v1/browse/new-releases`;
 
   const response = await axios.get(url, {
@@ -422,10 +391,7 @@ export const getNewReleasesService = async (spotifyId: string) => {
 };
 
 // 팔로우한 앨범 가져오기
-export const getFollowedAlbumService = async (spotifyId: string) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error("Access token이 없습니다");
-
+export const getFollowedAlbumService = async (accessToken: string) => {
   const url = `https://api.spotify.com/v1/me/albums`;
 
   const response = await axios.get(url, {
@@ -435,7 +401,7 @@ export const getFollowedAlbumService = async (spotifyId: string) => {
     params: {
       limit: 3,
       offset: 0,
-      market: "KR",
+      market: 'KR',
     },
   });
 
@@ -448,10 +414,7 @@ export const getFollowedAlbumService = async (spotifyId: string) => {
 };
 
 // 팔로우한 플레이리스트 가져오기
-export const getFollowedPlayListService = async (spotifyId: string) => {
-  const accessToken = await getUserAccessToken(spotifyId);
-  if (!accessToken) throw new Error("Access token이 없습니다");
-
+export const getFollowedPlayListService = async (accessToken: string) => {
   const url = `https://api.spotify.com/v1/me/playlists`;
 
   const response = await axios.get(url, {

@@ -1,4 +1,6 @@
-import express from 'express';
+import express, { RequestHandler } from 'express';
+import asyncHandler from 'express-async-handler';
+import { authenticateSpotifyUser } from '../middlewares/authenticateSpotifyUser';
 import { login, callback } from '../controllers/auth.controller';
 import { geminiChatHandler } from '../controllers/gemini.controller';
 import {
@@ -25,35 +27,64 @@ import {
 
 const router = express.Router();
 
+router.use('/spotify', asyncHandler(authenticateSpotifyUser));
+
 router.get('/auth/login', login);
 router.get('/auth/callback', callback);
-router.post('/gemini/chat',geminiChatHandler)
 
-router.get('/spotify/:spotifyId/player', getPlaybackStateController);
-router.put('/spotify/:spotifyId/player/play', startOrResumePlaybackController);
-router.put('/spotify/:spotifyId/player/pause', pausePlaybackController);
-router.post('/spotify/:spotifyId/player/next', skipToNextController);
-router.post('/spotify/:spotifyId/player/previous', skipToPreviousController);
-router.put('/spotify/:spotifyId/player/seek', seekToPositionController);
-router.put('/spotify/:spotifyId/player/volume',setPlaybackVolumeController);
-router.post('/spotify/:spotifyId/player/queue', addItemToQueueController);
-router.get('/spotify/:spotifyId/profile', getUserProfileController);
-
-router.get('/spotify/album/:spotifyId/:albumId', handleGetAlbumInfo);
-router.get('/spotify/playlist/:spotifyId/:playlistId', handleGetPlaylistInfo);
-router.get(
-  '/spotify/playlist-tracks/:spotifyId/:playlistId',
-  handleGetPlaylistTracks
+router.post(
+  '/gemini/chat',
+  asyncHandler(authenticateSpotifyUser),
+  geminiChatHandler as RequestHandler
 );
 
-router.put('/spotify/album/follow/:spotifyId/:albumId', followAlbum);         
-router.delete('/spotify/album/follow/:spotifyId/:albumId', albumFollowRemove);
+router.get('/spotify/player', getPlaybackStateController);
+router.put(
+  '/spotify/player/play',
+  startOrResumePlaybackController as RequestHandler
+);
+router.put('/spotify/player/pause', pausePlaybackController);
+router.post('/spotify/player/next', skipToNextController);
+router.post('/spotify/player/previous', skipToPreviousController);
+router.put('/spotify/player/seek', seekToPositionController as RequestHandler);
+router.put(
+  '/spotify/player/volume',
+  setPlaybackVolumeController as RequestHandler
+);
+router.post(
+  '/spotify/player/queue',
+  addItemToQueueController as RequestHandler
+);
 
-router.put('/spotify/playlist/:spotifyId/:playlistId/follow', FollowPlaylist);    
-router.delete('/spotify/playlist/:spotifyId/:playlistId/follow', UnfollowPlaylist); 
+router.get('/spotify/profile', getUserProfileController);
 
-router.get('/spotify/:spotifyId/new-releases', GetNewReleases);           
-router.get('/spotify/:spotifyId/followed/albums', GetFollowedAlbum);      
-router.get('/spotify/:spotifyId/followed/playlists', GetFollowedPlaylist); 
+router.get('/spotify/album/:albumId', handleGetAlbumInfo as RequestHandler);
+router.get(
+  '/spotify/playlist/:playlistId',
+  handleGetPlaylistInfo as RequestHandler
+);
+router.get(
+  '/spotify/playlist-tracks/:playlistId',
+  handleGetPlaylistTracks as RequestHandler
+);
+
+router.put('/spotify/album/follow/:albumId', followAlbum as RequestHandler);
+router.delete(
+  '/spotify/album/follow/:albumId',
+  albumFollowRemove as RequestHandler
+);
+
+router.put(
+  '/spotify/playlist/:playlistId/follow',
+  FollowPlaylist as RequestHandler
+);
+router.delete(
+  '/spotify/playlist/:playlistId/follow',
+  UnfollowPlaylist as RequestHandler
+);
+
+router.get('/spotify/new-releases', GetNewReleases);
+router.get('/spotify/followed/albums', GetFollowedAlbum);
+router.get('/spotify/followed/playlists', GetFollowedPlaylist);
 
 export default router;
