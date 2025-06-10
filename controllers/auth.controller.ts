@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { getLoginUrl, getTokensFromCode } from '../services/spotify.service';
 import { upsertUserToken } from '../models/user.model';
-import dotenv from 'dotenv';
-dotenv.config();
 
 export const login = (req: Request, res: Response) => {
   const url = getLoginUrl();
@@ -24,8 +22,6 @@ export const callback = async (req: Request, res: Response) => {
 
     res.json({
       accessToken: access_token,
-      refreshToken: refresh_token,
-      spotifyId: spotify_id,
     });
   } catch (error) {
     const err = error as any;
