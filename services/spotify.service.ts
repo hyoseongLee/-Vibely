@@ -436,3 +436,37 @@ export const getFollowedPlayListService = async (accessToken: string) => {
 
   return playlists;
 };
+
+// 앨범 좋아요 상태 확인
+export const checkAlbumLikeStatus = async (
+  accessToken: string,
+  albumId: string
+): Promise<boolean> => {
+  const res = await axios.get(
+    `https://api.spotify.com/v1/me/albums/contains?ids=${albumId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  return res.data[0]; // true or false
+};
+
+// 플레이리스트 좋아요 상태 확인
+export const checkPlaylistLikeStatus = async (
+  accessToken: string,
+  playlistId: string
+): Promise<boolean> => {
+  const response = await axios.get(
+    `https://api.spotify.com/v1/me/playlists?limit=50`, // 50개씩 조회
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  const playlists = response.data.items;
+  return playlists.some((playlist: any) => playlist.id === playlistId);
+};
