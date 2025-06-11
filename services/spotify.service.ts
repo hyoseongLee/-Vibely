@@ -120,6 +120,7 @@ export const getPlaylistInfo = async (
           previewUrl: track.preview_url,
           linkedFromId: track.linked_from?.id || null,
           artistNames: track.artists?.map((artist: any) => artist.name),
+          albumImage: track.album?.images?.[0]?.url || null,
         };
       }) || [],
   };
