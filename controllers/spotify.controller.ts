@@ -19,6 +19,8 @@ import {
   getNewReleasesService,
   getFollowedAlbumService,
   getFollowedPlayListService,
+  checkAlbumLikeStatus,
+  checkPlaylistLikeStatus,
 } from '../services/spotify.service';
 
 export const getPlaybackStateController = async (
@@ -270,3 +272,38 @@ export const GetFollowedPlaylist = async (req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// 앨범 좋아요 상태 확인
+export const getAlbumStatus = async (req: Request, res: Response) => {
+  try {
+    const { accessToken } = req.user!;
+    const { albumId } = req.params;
+
+    if (!albumId) {
+      return res.status(400).json({ message: '앨범 ID가 필요합니다.' });
+    }
+
+    const liked = await checkAlbumLikeStatus(accessToken, albumId);
+    res.status(200).json({ liked });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 플레이리스트 좋아요 상태 확인
+export const getPlaylistStatus = async (req: Request, res: Response) => {
+  try {
+    const { accessToken } = req.user!;
+    const { playlistId } = req.params;
+
+    if (!playlistId) {
+      return res.status(400).json({ message: '플레이리스트 ID가 필요합니다.' });
+    }
+
+    const liked = await checkPlaylistLikeStatus(accessToken, playlistId);
+    res.status(200).json({ liked });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+

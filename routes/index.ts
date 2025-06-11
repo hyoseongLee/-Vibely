@@ -23,6 +23,8 @@ import {
   setPlaybackVolumeController,
   addItemToQueueController,
   getUserProfileController,
+  getPlaylistStatus,
+  getAlbumStatus,
 } from '../controllers/spotify.controller';
 
 const router = express.Router();
@@ -86,5 +88,10 @@ router.delete(
 router.get('/spotify/new-releases', GetNewReleases);
 router.get('/spotify/followed/albums', GetFollowedAlbum);
 router.get('/spotify/followed/playlists', GetFollowedPlaylist);
+
+router.get('/spotify/album/:albumId/status', getAlbumStatus as RequestHandler);
+router.get('/spotify/playlist/:playlistId/status', getPlaylistStatus as RequestHandler);
+
+
 
 export default router;
