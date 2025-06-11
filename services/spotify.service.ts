@@ -155,6 +155,7 @@ export const getPlaylistTracks = async (
       linkedFromId: track.linked_from?.id || null,
       artistNames: track.artists.map((artist: any) => artist.name),
       albumImage: track.album.images?.[0]?.url || null,
+      durationMs: track.duration_ms,
     };
   });
 };
