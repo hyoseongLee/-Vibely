@@ -1,4 +1,4 @@
-### 🎵 Vibely
+### 🎵 Vibely - BE
 Vibely는 Spotify 연동 및 AI를 활용한 음악 기능을 제공하는 서버입니다.
 
 ----
